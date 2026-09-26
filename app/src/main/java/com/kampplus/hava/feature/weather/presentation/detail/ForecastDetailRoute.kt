@@ -10,16 +10,25 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kampplus.hava.R
 import com.kampplus.hava.feature.weather.presentation.model.ForecastUiModel
+import com.kampplus.hava.feature.weather.presentation.preference.ViewPreferenceUiState
 
 @Composable
-fun ForecastDetailRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: ForecastDetailViewModel = hiltViewModel()) {
+fun ForecastDetailRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ForecastDetailViewModel = hiltViewModel(),
+    preferenceUiState: ViewPreferenceUiState = ViewPreferenceUiState(),
+    onToggleTemperatureUnit: () -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     ForecastDetailScreen(
         uiState = uiState,
         onBack = onBack,
         onShare = { forecast -> context.shareForecast(forecast) },
-        modifier = modifier
+        modifier = modifier,
+        preferenceUiState = preferenceUiState,
+        onToggleTemperatureUnit = onToggleTemperatureUnit
     )
 }
 

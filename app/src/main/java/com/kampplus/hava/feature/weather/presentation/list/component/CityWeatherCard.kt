@@ -19,16 +19,23 @@ import com.kampplus.hava.core.ui.text.UiText
 import com.kampplus.hava.core.ui.theme.HavaTheme
 import com.kampplus.hava.feature.weather.presentation.model.CityWeatherUiModel
 import com.kampplus.hava.feature.weather.presentation.model.temperatureColor
+import com.kampplus.hava.feature.weather.presentation.preference.ViewPreferenceUiState
 
 @Composable
-fun CityWeatherCard(item: CityWeatherUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CityWeatherCard(
+    item: CityWeatherUiModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    preferenceUiState: ViewPreferenceUiState = ViewPreferenceUiState()
+) {
+    val displayTemp = preferenceUiState.formatTemperature(item.temperatureC)
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TemperatureBadge(text = item.temperatureText, containerColor = temperatureColor(item.temperatureC))
+            TemperatureBadge(text = displayTemp, containerColor = temperatureColor(item.temperatureC))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,

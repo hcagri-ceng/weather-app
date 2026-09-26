@@ -1,7 +1,10 @@
 package com.kampplus.hava.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -9,20 +12,35 @@ import androidx.navigation.compose.rememberNavController
 import com.kampplus.hava.feature.weather.domain.model.City
 import com.kampplus.hava.feature.weather.presentation.detail.ForecastDetailRoute
 import com.kampplus.hava.feature.weather.presentation.list.CityListRoute
+import com.kampplus.hava.feature.weather.presentation.preference.ViewPreferenceViewModel
 
 @Composable
-fun HavaNavHost(modifier: Modifier = Modifier, navController: NavHostController = rememberNavController()) {
+fun HavaNavHost(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+    preferenceViewModel: ViewPreferenceViewModel = hiltViewModel()
+) {
+    val preferenceUiState by preferenceViewModel.uiState.collectAsStateWithLifecycle()
     val openForecast: (City) -> Unit = { city -> navController.navigate(city.toDestination()) }
+
     NavHost(
         navController = navController,
         startDestination = ListDestination,
         modifier = modifier
     ) {
         composable<ListDestination> {
-            CityListRoute(onCityClick = openForecast)
+            CityListRoute(
+                onCityClick = openForecast,
+                preferenceUiState = preferenceUiState,
+                onToggleTemperatureUnit = preferenceViewModel::toggleTemperatureUnit
+            )
         }
         composable<ForecastDestination> {
-            ForecastDetailRoute(onBack = navController::navigateUp)
+            ForecastDetailRoute(
+                onBack = navController::navigateUp,
+                preferenceUiState = preferenceUiState,
+                onToggleTemperatureUnit = preferenceViewModel::toggleTemperatureUnit
+            )
         }
     }
 }

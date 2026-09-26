@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,6 +40,7 @@ import com.kampplus.hava.feature.weather.presentation.model.DailyUiModel
 import com.kampplus.hava.feature.weather.presentation.model.ForecastUiModel
 import com.kampplus.hava.feature.weather.presentation.model.HourlyUiModel
 import com.kampplus.hava.feature.weather.presentation.model.temperatureColor
+import com.kampplus.hava.feature.weather.presentation.preference.ViewPreferenceUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +48,9 @@ fun ForecastDetailScreen(
     uiState: UiState<ForecastUiModel>,
     onBack: () -> Unit,
     onShare: (ForecastUiModel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    preferenceUiState: ViewPreferenceUiState = ViewPreferenceUiState(),
+    onToggleTemperatureUnit: () -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier,
@@ -59,6 +63,12 @@ fun ForecastDetailScreen(
                     }
                 },
                 actions = {
+                    TextButton(onClick = onToggleTemperatureUnit) {
+                        Text(
+                            text = preferenceUiState.unitSymbol,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                     if (uiState is UiState.Success) {
                         ShareButton(onClick = { onShare(uiState.data) })
                     }
@@ -76,14 +86,21 @@ fun ForecastDetailScreen(
                 UiState.Loading -> CircularProgressIndicator()
                 UiState.Empty -> Text(stringResource(R.string.empty_generic))
                 is UiState.Error -> Text(uiState.message.asString())
-                is UiState.Success -> ForecastContent(forecast = uiState.data)
+                is UiState.Success -> ForecastContent(
+                    forecast = uiState.data,
+                    preferenceUiState = preferenceUiState
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ForecastContent(forecast: ForecastUiModel, modifier: Modifier = Modifier) {
+private fun ForecastContent(
+    forecast: ForecastUiModel,
+    modifier: Modifier = Modifier,
+    preferenceUiState: ViewPreferenceUiState = ViewPreferenceUiState()
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -91,7 +108,11 @@ private fun ForecastContent(forecast: ForecastUiModel, modifier: Modifier = Modi
             .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CurrentWeatherHeader(forecast = forecast, modifier = Modifier.padding(horizontal = 16.dp))
+        CurrentWeatherHeader(
+            forecast = forecast,
+            preferenceUiState = preferenceUiState,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
         SectionTitle(text = stringResource(R.string.detail_hourly))
         HourlyForecastRow(items = forecast.hourly)
         SectionTitle(text = stringResource(R.string.detail_daily))
@@ -105,10 +126,15 @@ private fun ForecastContent(forecast: ForecastUiModel, modifier: Modifier = Modi
 }
 
 @Composable
-private fun CurrentWeatherHeader(forecast: ForecastUiModel, modifier: Modifier = Modifier) {
+private fun CurrentWeatherHeader(
+    forecast: ForecastUiModel,
+    modifier: Modifier = Modifier,
+    preferenceUiState: ViewPreferenceUiState = ViewPreferenceUiState()
+) {
+    val displayTemp = preferenceUiState.formatTemperature(forecast.temperatureC)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            TemperatureBadge(text = forecast.temperatureText, containerColor = temperatureColor(forecast.temperatureC), size = 88.dp)
+            TemperatureBadge(text = displayTemp, containerColor = temperatureColor(forecast.temperatureC), size = 88.dp)
             Column {
                 Text(
                     text = forecast.subtitle,
